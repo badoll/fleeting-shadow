@@ -1,0 +1,336 @@
+<!doctype html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="浮生泡影是一个本地优先的 Three.js 回忆泡泡空间 MVP。" />
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png?v=3" />
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png?v=3" />
+  <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png?v=3" />
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=3" />
+  <title>浮生泡影 | 回忆泡泡空间 MVP</title>
+</head>
+
+<body>
+  <main id="app" class="app-shell" data-state="empty">
+    <canvas id="memory-canvas" aria-label="回忆泡泡空间"></canvas>
+    <div class="ambient-film" aria-hidden="true"></div>
+    <div id="bubble-hint" class="bubble-hint" role="status" aria-live="polite" hidden>
+      打开回忆
+    </div>
+
+    <header class="topbar" aria-label="回忆空间导航">
+      <div class="brand-chip" aria-label="浮生泡影">
+        <span class="brand-mark" aria-hidden="true"></span>
+        <span class="brand-copy">
+          <span class="brand-title">浮生泡影</span>
+          <span id="memory-count" class="brand-count">0 段回忆</span>
+        </span>
+      </div>
+
+      <nav class="desktop-actions" aria-label="常用操作">
+        <button type="button" id="top-add-button" class="tool-button primary" data-action="pick" aria-label="添加回忆"
+          title="添加回忆" hidden>
+          <i data-lucide="image-plus" aria-hidden="true"></i>
+          <span>添加回忆</span>
+        </button>
+        <button type="button" id="random-button" class="tool-button mood" data-action="random" data-random-control
+          aria-label="随机遇见" title="添加回忆后可使用" disabled>
+          <i data-lucide="shuffle" aria-hidden="true"></i>
+          <span>随机遇见</span>
+        </button>
+        <button type="button" id="settings-button" class="icon-button" data-action="settings" aria-label="打开设置"
+          aria-controls="settings-panel" aria-expanded="false" title="设置">
+          <i data-lucide="settings-2" aria-hidden="true"></i>
+        </button>
+      </nav>
+
+      <input id="file-input" type="file" accept="image/*,video/*" multiple hidden />
+      <input id="background-input" type="file" accept="image/jpeg,image/png,image/webp,.jpg,.jpeg,.png,.webp" hidden />
+      <input id="panorama-background-input" type="file" accept="image/jpeg,image/png,image/webp,.jpg,.jpeg,.png,.webp"
+        hidden />
+      <input id="cube-background-input" type="file" accept="image/jpeg,image/png,image/webp,.jpg,.jpeg,.png,.webp"
+        hidden />
+    </header>
+
+    <section id="empty-state" class="empty-state" aria-live="polite">
+      <div class="empty-copy">
+        <p class="eyebrow">Local first memory space</p>
+        <h1>把回忆放进泡泡里</h1>
+        <p class="empty-description">选择照片或视频，在漂浮的记忆中随意漫游</p>
+        <div class="empty-actions">
+          <button type="button" class="tool-button primary empty-primary" data-action="pick" aria-label="添加回忆">
+            <i data-lucide="image-plus" aria-hidden="true"></i>
+            <span>添加回忆</span>
+          </button>
+          <button type="button" class="text-button" data-action="sample">
+            先看看示例
+          </button>
+        </div>
+        <p class="privacy-note">
+          <i data-lucide="info" aria-hidden="true"></i>
+          <span>照片和视频仅在当前浏览器中处理</span>
+        </p>
+      </div>
+    </section>
+
+    <section id="loading-overlay" class="loading-overlay" role="status" aria-live="polite" hidden>
+      <div class="loading-copy">
+        <p class="eyebrow">正在处理</p>
+        <strong id="loading-title">正在让回忆显影</strong>
+        <span id="loading-detail">准备中...</span>
+        <progress id="loading-progress" max="1" value="0"></progress>
+      </div>
+    </section>
+
+    <section id="settings-panel" class="settings-panel" role="dialog" aria-modal="false"
+      aria-labelledby="settings-title" hidden>
+      <div class="settings-sheet">
+        <div class="settings-top">
+          <div>
+            <p class="eyebrow">Controls</p>
+            <h2 id="settings-title">空间设置</h2>
+          </div>
+          <button type="button" id="close-settings" class="icon-button" data-action="close-settings" aria-label="关闭设置"
+            title="关闭设置">
+            <i data-lucide="x" aria-hidden="true"></i>
+          </button>
+        </div>
+
+        <div class="settings-group">
+          <h3>浏览控制</h3>
+          <div class="settings-row">
+            <span>
+              <strong>空间视角</strong>
+              <small>轻微视差，鼠标离开后会回正</small>
+            </span>
+            <button type="button" id="parallax-button" class="switch-button" data-action="parallax"
+              aria-pressed="false">
+              开启
+            </button>
+          </div>
+          <div class="settings-row motion-row">
+            <span>
+              <strong>视角模式</strong>
+              <small>选择背景转动的幅度</small>
+            </span>
+            <fieldset id="view-mode-group" class="segmented-control view-mode-control" aria-label="视角模式">
+              <label>
+                <input type="radio" name="view-mode" value="soft" checked />
+                <span>柔和</span>
+              </label>
+              <label>
+                <input type="radio" name="view-mode" value="sixWay" />
+                <span>环顾</span>
+              </label>
+            </fieldset>
+          </div>
+          <div class="settings-row motion-row">
+            <span>
+              <strong>动态强度</strong>
+              <small>控制泡泡自身漫游幅度</small>
+            </span>
+            <fieldset id="motion-preset-group" class="segmented-control" aria-label="动态强度">
+              <label>
+                <input type="radio" name="motion-preset" value="calm" />
+                <span>静谧</span>
+              </label>
+              <label>
+                <input type="radio" name="motion-preset" value="flowing" checked />
+                <span>流动</span>
+              </label>
+              <label>
+                <input type="radio" name="motion-preset" value="vivid" />
+                <span>灵动</span>
+              </label>
+            </fieldset>
+          </div>
+          <label class="settings-row range-row" for="bubble-size">
+            <span>
+              <strong>泡泡大小</strong>
+              <small>只影响浏览时的可见尺度</small>
+            </span>
+            <span class="range-control">
+              <input id="bubble-size" type="range" min="60" max="220" step="5" value="100" aria-label="泡泡大小" />
+              <output id="bubble-size-value" for="bubble-size">1.0x</output>
+            </span>
+          </label>
+          <div class="settings-row action-row">
+            <button type="button" id="background-button" class="tool-button" data-action="background">
+              <i data-lucide="image" aria-hidden="true"></i>
+              <span>背景设置</span>
+            </button>
+            <button type="button" id="reset-button" class="tool-button" data-action="reset" title="视角变化后可使用" disabled>
+              <i data-lucide="rotate-ccw" aria-hidden="true"></i>
+              <span>回到初始视角</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="settings-group">
+          <h3>声音</h3>
+          <div class="settings-row">
+            <span>
+              <strong>环境音乐</strong>
+              <small>视频原声播放时会自动降低</small>
+            </span>
+            <button type="button" class="switch-button audio-toggle" data-action="audio" data-audio-toggle
+              aria-pressed="false" aria-label="开启环境音乐" title="开启环境音乐">
+              <i data-lucide="volume-2" class="audio-icon audio-icon-on" aria-hidden="true"></i>
+              <i data-lucide="volume-x" class="audio-icon audio-icon-off" aria-hidden="true"></i>
+              <span>关闭</span>
+            </button>
+          </div>
+          <label class="settings-row range-row" for="ambient-volume">
+            <span>
+              <strong>音量</strong>
+              <small>仅控制环境音乐</small>
+            </span>
+            <span class="range-control">
+              <input id="ambient-volume" type="range" min="0" max="100" step="5" value="42" aria-label="环境音乐音量" />
+              <output id="ambient-volume-value" for="ambient-volume">42%</output>
+            </span>
+          </label>
+        </div>
+
+        <div class="settings-group">
+          <h3>舒适度</h3>
+          <div class="settings-row">
+            <span>
+              <strong>减少动态效果</strong>
+              <small>关闭大幅移动与持续视差</small>
+            </span>
+            <button type="button" id="reduce-motion-button" class="switch-button" data-action="reduce-motion"
+              aria-pressed="false">
+              关闭
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <nav class="mobile-action-bar" aria-label="移动端常用操作">
+      <button type="button" class="mobile-action" data-action="pick" data-mobile-add aria-label="添加回忆" title="添加回忆"
+        hidden>
+        <i data-lucide="image-plus" aria-hidden="true"></i>
+        <span>添加</span>
+      </button>
+      <button type="button" class="mobile-action" data-action="random" data-random-control aria-label="随机遇见"
+        title="添加回忆后可使用" disabled>
+        <i data-lucide="shuffle" aria-hidden="true"></i>
+        <span>随机</span>
+      </button>
+      <button type="button" class="mobile-action" data-action="settings" aria-label="打开设置" title="设置">
+        <i data-lucide="settings-2" aria-hidden="true"></i>
+        <span>设置</span>
+      </button>
+      <button type="button" class="mobile-action audio-toggle" data-action="audio" data-audio-toggle
+        aria-pressed="false" aria-label="开启环境音乐" title="开启环境音乐">
+        <i data-lucide="volume-2" class="audio-icon audio-icon-on" aria-hidden="true"></i>
+        <i data-lucide="volume-x" class="audio-icon audio-icon-off" aria-hidden="true"></i>
+        <span>声音</span>
+      </button>
+    </nav>
+
+    <section id="focus-view" class="focus-view" role="dialog" aria-modal="true" aria-labelledby="focus-title" hidden>
+      <div class="focus-scrim" aria-hidden="true"></div>
+      <div class="focus-top">
+        <div class="focus-heading">
+          <p id="focus-kind" class="eyebrow">Memory</p>
+          <h2 id="focus-title">未命名回忆</h2>
+          <p id="focus-meta" class="focus-meta">第 1 段回忆</p>
+        </div>
+        <div class="focus-controls">
+          <button type="button" class="icon-button audio-toggle" data-action="audio" data-audio-toggle
+            aria-pressed="false" aria-label="开启环境音乐" title="开启环境音乐">
+            <i data-lucide="volume-2" class="audio-icon audio-icon-on" aria-hidden="true"></i>
+            <i data-lucide="volume-x" class="audio-icon audio-icon-off" aria-hidden="true"></i>
+          </button>
+          <button type="button" id="close-focus" class="icon-button" aria-label="关闭回忆" title="关闭回忆">
+            <i data-lucide="x" aria-hidden="true"></i>
+          </button>
+        </div>
+      </div>
+      <div id="focus-stage" class="focus-stage"></div>
+      <div class="focus-bottom">
+        <span id="video-sound-state" class="video-sound-state">照片静静展开</span>
+        <button type="button" class="tool-button" data-action="random">
+          <i data-lucide="shuffle" aria-hidden="true"></i>
+          <span>下一段随机回忆</span>
+        </button>
+      </div>
+    </section>
+
+    <section id="background-modal" class="background-modal" role="dialog" aria-modal="true"
+      aria-labelledby="background-title" hidden>
+      <div class="background-sheet">
+        <div class="background-top">
+          <div class="background-heading">
+            <p class="eyebrow">Background</p>
+            <h2 id="background-title">选择背景模式</h2>
+            <p id="background-subtitle" class="background-subtitle">
+              普通背景不会被当作全景；360° 全景需接近 2:1。
+            </p>
+          </div>
+          <button type="button" id="close-background" class="icon-button" aria-label="关闭背景配置" title="关闭背景配置">
+            <i data-lucide="x" aria-hidden="true"></i>
+          </button>
+        </div>
+
+        <div id="background-mode-list" class="background-mode-list">
+          <button type="button" class="background-mode-option" data-background-mode="default">
+            <i data-lucide="sparkles" aria-hidden="true"></i>
+            <span>
+              <strong>默认背景</strong>
+              <small>恢复内置背景</small>
+            </span>
+          </button>
+          <button type="button" class="background-mode-option" data-background-mode="panorama">
+            <i data-lucide="image" aria-hidden="true"></i>
+            <span>
+              <strong>360° 全景</strong>
+              <small>接近 2:1</small>
+            </span>
+          </button>
+          <button type="button" class="background-mode-option" data-background-mode="cube">
+            <i data-lucide="cuboid" aria-hidden="true"></i>
+            <span>
+              <strong>Cube 六面图</strong>
+              <small>px/nx/py/ny/pz/nz 六张方图</small>
+            </span>
+          </button>
+          <button type="button" class="background-mode-option" data-background-mode="flat">
+            <i data-lucide="image" aria-hidden="true"></i>
+            <span>
+              <strong>普通背景</strong>
+              <small>不限最小尺寸，自动裁剪</small>
+            </span>
+          </button>
+        </div>
+
+        <div id="background-config" class="background-config" hidden>
+          <div class="background-config-bar">
+            <button type="button" id="background-back" class="tool-button background-back">
+              <span>返回</span>
+            </button>
+          </div>
+          <div id="background-upload-area" class="background-upload-area"></div>
+          <div class="background-actions">
+            <button type="button" id="background-apply" class="tool-button primary" disabled>
+              <span>应用背景</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="memory-a11y-list" class="memory-access-list" aria-label="可打开的回忆"></section>
+
+    <output id="status-line" class="status-line" aria-live="polite"></output>
+  </main>
+
+  <script type="module" src="/src/main.js"></script>
+</body>
+
+</html>
