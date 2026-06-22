@@ -8,6 +8,8 @@ Fusheng Paoying is a local-first Three.js memory bubble space for browsing perso
 
 - Local-first photo and video import through the browser file picker.
 - Floating Three.js bubble scene with focus, hover, and random-memory interactions.
+- Short-term Web/PWA shell with manifest metadata, app icons, and conservative app-shell caching.
+- Mobile runtime tuning for touch input, reduced motion, constrained devices, and WebGL recovery.
 - Flat, panorama, and cube background upload modes with dimension validation.
 - Optional ambient music with attribution stored in the repository.
 - Deterministic layout and media helpers covered by Node tests.
@@ -38,9 +40,12 @@ The app processes selected files in the current browser session. It does not inc
 npm test
 npm run build
 npm run preview
+npm run test:smoke
 ```
 
 Source files live in `src/`, static assets live in `public/`, and tests live in `tests/`. Generated output in `dist/`, local scratch work, and personal process notes are ignored.
+
+See [docs/platform-support.md](docs/platform-support.md) for the short-term desktop/mobile/PWA support matrix, release checks, and known platform limits.
 
 ## Assets And Attribution
 

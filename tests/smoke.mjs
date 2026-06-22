@@ -127,6 +127,44 @@ async function hoverAnyBubble(page, viewport) {
   return false;
 }
 
+async function assertCanvasNonBlank(page, label) {
+  await page.waitForFunction(() => {
+    const canvas = document.querySelector('#memory-canvas');
+    const gl = canvas?.getContext('webgl2') || canvas?.getContext('webgl');
+    if (!canvas || !gl || gl.drawingBufferWidth <= 0 || gl.drawingBufferHeight <= 0) return false;
+
+    const width = Math.min(40, gl.drawingBufferWidth);
+    const height = Math.min(40, gl.drawingBufferHeight);
+    const x = Math.max(0, Math.floor((gl.drawingBufferWidth - width) / 2));
+    const y = Math.max(0, Math.floor((gl.drawingBufferHeight - height) / 2));
+    const pixels = new Uint8Array(width * height * 4);
+    gl.readPixels(x, y, width, height, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
+
+    let visiblePixels = 0;
+    for (let index = 0; index < pixels.length; index += 4) {
+      const alpha = pixels[index + 3];
+      const brightness = pixels[index] + pixels[index + 1] + pixels[index + 2];
+      if (alpha > 0 && brightness > 12) visiblePixels += 1;
+    }
+
+    return visiblePixels > width * height * 0.03;
+  }, null, { timeout: 5000 }).catch((error) => {
+    throw new Error(`${label} canvas should render nonblank: ${error.message}`);
+  });
+}
+
+async function assertNoHorizontalOverflow(page, label) {
+  const metrics = await page.evaluate(() => ({
+    clientWidth: document.documentElement.clientWidth,
+    scrollWidth: document.documentElement.scrollWidth,
+  }));
+
+  assert.ok(
+    metrics.scrollWidth <= metrics.clientWidth + 2,
+    `${label} should not create horizontal overflow (${metrics.scrollWidth} > ${metrics.clientWidth})`,
+  );
+}
+
 async function openSettings(page) {
   await clickVisible(page, '[data-action="settings"]');
   await page.waitForSelector('#settings-panel:not([hidden])');
@@ -149,6 +187,8 @@ async function runViewport(browser, name, viewport) {
   await page.goto(baseUrl, { waitUntil: 'networkidle' });
   await page.waitForSelector('#memory-canvas');
   await page.waitForSelector('#empty-state:not([hidden])');
+  await assertCanvasNonBlank(page, `${name} empty`);
+  await assertNoHorizontalOverflow(page, `${name} empty`);
   await page.screenshot({
     path: path.join(screenshotDir, `${name}-empty.png`),
     fullPage: true,
@@ -208,6 +248,8 @@ async function runViewport(browser, name, viewport) {
   );
   await page.waitForFunction(() => document.querySelector('#background-modal')?.hidden === true);
   await page.waitForTimeout(900);
+  await assertCanvasNonBlank(page, `${name} browsing`);
+  await assertNoHorizontalOverflow(page, `${name} browsing`);
   await page.screenshot({
     path: path.join(screenshotDir, `${name}-space.png`),
     fullPage: true,
@@ -260,6 +302,48 @@ async function runViewport(browser, name, viewport) {
   await page.close();
 }
 
+async function runResponsiveProbe(browser, name, viewport) {
+  const errors = [];
+  const page = await browser.newPage({
+    viewport,
+    deviceScaleFactor: 1,
+    isMobile: true,
+    hasTouch: true,
+  });
+
+  page.on('pageerror', (error) => errors.push(error.message));
+  page.on('console', (message) => {
+    if (message.type() === 'error') errors.push(message.text());
+  });
+
+  await page.goto(baseUrl, { waitUntil: 'networkidle' });
+  await page.waitForSelector('#empty-state:not([hidden])');
+  await assertCanvasNonBlank(page, `${name} empty`);
+  await assertNoHorizontalOverflow(page, `${name} empty`);
+  await page.screenshot({
+    path: path.join(screenshotDir, `${name}-empty.png`),
+    fullPage: true,
+  });
+
+  await page.click('#empty-state [data-action="sample"]');
+  await page.waitForFunction(() =>
+    !document.querySelector('#memory-count')?.textContent?.startsWith('0 '),
+  );
+  await assertCanvasNonBlank(page, `${name} browsing`);
+  await clickVisible(page, '[data-action="random"]');
+  await page.waitForSelector('#focus-view:not([hidden]) .focused-media');
+  await assertNoHorizontalOverflow(page, `${name} focus`);
+  await page.screenshot({
+    path: path.join(screenshotDir, `${name}-focus.png`),
+    fullPage: true,
+  });
+  await page.keyboard.press('Escape');
+  await page.waitForFunction(() => document.querySelector('#focus-view')?.hidden === true);
+
+  assert.deepEqual(errors, []);
+  await page.close();
+}
+
 async function runReducedMotion(browser) {
   const page = await browser.newPage({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
   await page.emulateMedia({ reducedMotion: 'reduce' });
@@ -285,6 +369,8 @@ const browser = await chromium.launch({
 try {
   await runViewport(browser, 'desktop', { width: 1440, height: 920 });
   await runViewport(browser, 'mobile', { width: 390, height: 844 });
+  await runResponsiveProbe(browser, 'android', { width: 412, height: 915 });
+  await runResponsiveProbe(browser, 'landscape', { width: 844, height: 390 });
   await runReducedMotion(browser);
   console.log(`Smoke screenshots saved to ${screenshotDir}`);
 } finally {

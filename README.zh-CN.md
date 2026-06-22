@@ -8,6 +8,8 @@
 
 - 通过浏览器文件选择器导入本地照片和视频。
 - Three.js 泡泡空间，支持悬停、聚焦和随机遇见回忆。
+- 短期 Web/PWA 外壳，包含 manifest 元数据、应用图标和保守的应用外壳缓存。
+- 面向触控、减少动态效果、低资源设备和 WebGL 恢复的移动端运行策略。
 - 支持平面图、全景图和 cube 背景上传，并校验图片尺寸。
 - 可选环境音乐，仓库内保留授权署名。
 - 布局和媒体处理逻辑有 Node 测试覆盖。
@@ -38,9 +40,12 @@ npm run dev
 npm test
 npm run build
 npm run preview
+npm run test:smoke
 ```
 
 源码位于 `src/`，静态资源位于 `public/`，测试位于 `tests/`。`dist/` 构建产物、本地草稿和个人过程记录已在忽略规则中排除。
+
+短期桌面/移动/PWA 支持矩阵、发布检查和已知平台限制见 [docs/platform-support.md](docs/platform-support.md)。
 
 ## 资源与署名
 

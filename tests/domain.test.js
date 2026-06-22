@@ -6,14 +6,19 @@ import {
   classifyFile,
   createMediaRecordsFromFiles,
   disposeMediaRecords,
+  formatBytes,
   generateBubbleLayout,
   selectRandomMemory,
+  summarizeMediaValidation,
+  validateMediaFiles,
 } from '../src/domain.js';
 
 test('classifies image and video files by MIME type', () => {
   assert.equal(classifyFile({ type: 'image/jpeg' }), 'image');
   assert.equal(classifyFile({ type: 'video/mp4' }), 'video');
   assert.equal(classifyFile({ type: 'application/pdf' }), null);
+  assert.equal(classifyFile({ name: 'phone-photo.HEIC', type: '' }), 'image');
+  assert.equal(classifyFile({ name: 'clip.MOV', type: '' }), 'video');
 });
 
 test('classifies flat and panorama background dimensions', () => {
@@ -97,6 +102,38 @@ test('creates media records and reports unsupported files', () => {
   assert.equal(records[0].kind, 'image');
   assert.equal(records[0].revokeOnReset, true);
   assert.equal(unsupported.length, 1);
+});
+
+test('validates media selections with count and size limits', () => {
+  const files = [
+    { name: 'a.jpg', type: 'image/jpeg', size: 20, lastModified: 1 },
+    { name: 'b.mp4', type: 'video/mp4', size: 80, lastModified: 2 },
+    { name: 'notes.txt', type: 'text/plain', size: 5, lastModified: 3 },
+    { name: 'huge.mov', type: 'video/quicktime', size: 220, lastModified: 4 },
+  ];
+  const validation = validateMediaFiles(files, {
+    maxFiles: 2,
+    maxFileBytes: 100,
+    maxTotalBytes: 140,
+  });
+
+  assert.deepEqual(validation.acceptedFiles.map((file) => file.name), ['a.jpg', 'b.mp4']);
+  assert.equal(validation.rejectedFiles.length, 2);
+  assert.deepEqual(validation.rejectedFiles.map((file) => file.code), ['unsupported', 'file-too-large']);
+  assert.equal(formatBytes(1024 * 1024), '1 MB');
+});
+
+test('summarizes rejected media reasons', () => {
+  const message = summarizeMediaValidation({
+    acceptedCount: 1,
+    rejectedFiles: [
+      { reason: '仅支持照片或视频文件' },
+      { reason: '仅支持照片或视频文件' },
+      { reason: '单个文件不能超过 320 MB' },
+    ],
+  });
+
+  assert.equal(message, '1 个文件可加入，已忽略 3 个：仅支持照片或视频文件 × 2；单个文件不能超过 320 MB');
 });
 
 test('generates deterministic bubble layouts for a seed', () => {

@@ -4,6 +4,7 @@ import { defineConfig } from 'vite';
 
 const LOCAL_ONLY_PUBLIC_ASSETS = [
   '.DS_Store',
+  'icon.png',
 ];
 
 function omitLocalOnlyPublicAssets() {

@@ -1,5 +1,27 @@
 const IMAGE_PREFIX = 'image/';
 const VIDEO_PREFIX = 'video/';
+const BYTE = 1024;
+const DEFAULT_MAX_MEDIA_FILES = 96;
+const DEFAULT_MAX_MEDIA_FILE_BYTES = 500 * BYTE * BYTE;
+const DEFAULT_MAX_MEDIA_TOTAL_BYTES = 1400 * BYTE * BYTE;
+
+const FILE_EXTENSION_KIND = Object.freeze({
+  avif: 'image',
+  bmp: 'image',
+  gif: 'image',
+  heic: 'image',
+  heif: 'image',
+  jpeg: 'image',
+  jpg: 'image',
+  png: 'image',
+  svg: 'image',
+  webp: 'image',
+  m4v: 'video',
+  mov: 'video',
+  mp4: 'video',
+  ogv: 'video',
+  webm: 'video',
+});
 
 export function classifyBackground(width, height) {
   const numericWidth = Number(width);
@@ -70,10 +92,113 @@ export function classifyCubeFace(width, height) {
 }
 
 export function classifyFile(file) {
-  if (!file || typeof file.type !== 'string') return null;
-  if (file.type.startsWith(IMAGE_PREFIX)) return 'image';
-  if (file.type.startsWith(VIDEO_PREFIX)) return 'video';
-  return null;
+  if (!file) return null;
+
+  const type = typeof file.type === 'string' ? file.type.toLowerCase() : '';
+  if (type.startsWith(IMAGE_PREFIX)) return 'image';
+  if (type.startsWith(VIDEO_PREFIX)) return 'video';
+
+  const extension = getFileExtension(file);
+  return FILE_EXTENSION_KIND[extension] ?? null;
+}
+
+export function getFileExtension(file) {
+  const name = String(file?.name || '');
+  const extension = name.includes('.') ? name.split('.').pop() : '';
+  return extension ? extension.toLowerCase() : '';
+}
+
+export function formatBytes(bytes) {
+  const numericBytes = Number(bytes);
+  if (!Number.isFinite(numericBytes) || numericBytes <= 0) return '0 MB';
+
+  const megabytes = numericBytes / BYTE / BYTE;
+  if (megabytes < 1024) return `${Math.max(1, Math.round(megabytes))} MB`;
+
+  const gigabytes = megabytes / 1024;
+  return `${Number(gigabytes.toFixed(gigabytes >= 10 ? 0 : 1))} GB`;
+}
+
+export function validateMediaFiles(fileList, options = {}) {
+  const files = Array.from(fileList ?? []);
+  const maxFiles = Number.isFinite(options.maxFiles) ? Math.max(0, options.maxFiles) : DEFAULT_MAX_MEDIA_FILES;
+  const maxFileBytes = Number.isFinite(options.maxFileBytes)
+    ? Math.max(0, options.maxFileBytes)
+    : DEFAULT_MAX_MEDIA_FILE_BYTES;
+  const maxTotalBytes = Number.isFinite(options.maxTotalBytes)
+    ? Math.max(0, options.maxTotalBytes)
+    : DEFAULT_MAX_MEDIA_TOTAL_BYTES;
+  const acceptedFiles = [];
+  const rejectedFiles = [];
+  let acceptedBytes = 0;
+
+  files.forEach((file) => {
+    const kind = classifyFile(file);
+    const size = Number(file?.size) || 0;
+
+    if (!kind) {
+      rejectedFiles.push({
+        file,
+        code: 'unsupported',
+        reason: '仅支持照片或视频文件',
+      });
+      return;
+    }
+
+    if (maxFileBytes > 0 && size > maxFileBytes) {
+      rejectedFiles.push({
+        file,
+        code: 'file-too-large',
+        reason: `单个文件不能超过 ${formatBytes(maxFileBytes)}`,
+      });
+      return;
+    }
+
+    if (acceptedFiles.length >= maxFiles) {
+      rejectedFiles.push({
+        file,
+        code: 'too-many',
+        reason: `最多一次选择 ${maxFiles} 个文件`,
+      });
+      return;
+    }
+
+    if (maxTotalBytes > 0 && acceptedBytes + size > maxTotalBytes) {
+      rejectedFiles.push({
+        file,
+        code: 'total-too-large',
+        reason: `本次选择总大小不能超过 ${formatBytes(maxTotalBytes)}`,
+      });
+      return;
+    }
+
+    acceptedFiles.push(file);
+    acceptedBytes += size;
+  });
+
+  return {
+    files,
+    acceptedFiles,
+    rejectedFiles,
+    acceptedBytes,
+    acceptedCount: acceptedFiles.length,
+    rejectedCount: rejectedFiles.length,
+  };
+}
+
+export function summarizeMediaValidation(validation) {
+  const acceptedCount = validation?.acceptedCount ?? validation?.acceptedFiles?.length ?? 0;
+  const rejectedFiles = Array.from(validation?.rejectedFiles ?? []);
+  if (rejectedFiles.length === 0) return null;
+
+  const reasons = rejectedFiles.reduce((counts, item) => {
+    counts.set(item.reason, (counts.get(item.reason) ?? 0) + 1);
+    return counts;
+  }, new Map());
+  const reasonText = Array.from(reasons, ([reason, count]) => (count > 1 ? `${reason} × ${count}` : reason)).join('；');
+
+  if (acceptedCount === 0) return `没有可加入的媒体：${reasonText}`;
+  return `${acceptedCount} 个文件可加入，已忽略 ${rejectedFiles.length} 个：${reasonText}`;
 }
 
 export function hashString(value) {

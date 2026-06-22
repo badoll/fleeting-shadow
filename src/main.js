@@ -1,21 +1,16 @@
 import './styles.css';
-import {
-  createIcons,
-  Cuboid,
-  Glasses,
-  Image as ImageIcon,
-  ImagePlus,
-  Info,
-  Maximize2,
-  Play,
-  RotateCcw,
-  Settings2,
-  Shuffle,
-  Sparkles,
-  Volume2,
-  VolumeX,
-  X,
-} from 'lucide';
+import { createIcons } from './icons.js';
+import Cuboid from 'lucide/dist/esm/icons/cuboid.mjs';
+import ImageIcon from 'lucide/dist/esm/icons/image.mjs';
+import ImagePlus from 'lucide/dist/esm/icons/image-plus.mjs';
+import Info from 'lucide/dist/esm/icons/info.mjs';
+import RotateCcw from 'lucide/dist/esm/icons/rotate-ccw.mjs';
+import Settings2 from 'lucide/dist/esm/icons/settings-2.mjs';
+import Shuffle from 'lucide/dist/esm/icons/shuffle.mjs';
+import Sparkles from 'lucide/dist/esm/icons/sparkles.mjs';
+import Volume2 from 'lucide/dist/esm/icons/volume-2.mjs';
+import VolumeX from 'lucide/dist/esm/icons/volume-x.mjs';
+import X from 'lucide/dist/esm/icons/x.mjs';
 import {
   classifyBackground,
   classifyCubeFace,
@@ -23,9 +18,17 @@ import {
   disposeMediaRecords,
   hashString,
   seededRandom,
+  summarizeMediaValidation,
+  validateMediaFiles,
 } from './domain.js';
 import { AmbientBgm } from './audio.js';
 import { createSampleMemories, prepareMemoryRecords } from './media.js';
+import {
+  detectPlatformCapabilities,
+  getPlatformIssueMessages,
+  getRuntimeProfile,
+} from './platform.js';
+import { registerAppShellServiceWorker } from './pwa.js';
 import { MemoryBubbleScene } from './scene.js';
 import {
   DEFAULT_MOTION_PRESET,
@@ -42,12 +45,9 @@ createIcons({
   },
   icons: {
     Cuboid,
-    Glasses,
     Image: ImageIcon,
     ImagePlus,
     Info,
-    Maximize2,
-    Play,
     RotateCcw,
     Settings2,
     Shuffle,
@@ -116,6 +116,7 @@ const statusLine = document.querySelector('#status-line');
 const audioButtons = document.querySelectorAll('[data-audio-toggle]');
 const bubbleHint = document.querySelector('#bubble-hint');
 const memoryA11yList = document.querySelector('#memory-a11y-list');
+const capabilityNote = document.querySelector('#capability-note');
 
 let memories = [];
 let focusedMemory = null;
@@ -144,6 +145,8 @@ let lastSettingsReturnTarget = null;
 let viewDirty = false;
 
 const systemReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+const platformCapabilities = detectPlatformCapabilities();
+const runtimeProfile = getRuntimeProfile(platformCapabilities);
 
 const BACKGROUND_MAX_BYTES = 30 * 1024 * 1024;
 const BACKGROUND_ALLOWED_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp']);
@@ -183,13 +186,58 @@ const BACKGROUND_MODE_COPY = {
   },
 };
 
-const scene = new MemoryBubbleScene({
-  canvas,
-  onPick: (memory) => {
-    void openMemory(memory, { source: 'bubble' });
-  },
-  onHoverChange: handleBubbleHover,
-});
+function createFallbackScene() {
+  return {
+    setMemories() {},
+    pulseMemory() {},
+    focusBubble: () => Promise.resolve(true),
+    clearFocus: () => Promise.resolve(true),
+    setParallaxMode() {},
+    setMotionPreset: () => true,
+    setViewMode: () => true,
+    setBubbleScale() {},
+    resetView() {},
+    setReducedMotion() {},
+    setPageVisible() {},
+    resetBackground() {},
+    setFlatBackgroundImage() {},
+    setPanoramaBackground() {},
+    setCubeBackground() {},
+    getMaxTextureSize: () => 2048,
+    dispose() {},
+  };
+}
+
+function handleRenderStatus({ status }) {
+  document.body.dataset.renderStatus = status;
+  if (status === 'lost') {
+    showStatus('WebGL 暂时中断，浏览器恢复后会尝试重建空间');
+  }
+  if (status === 'restored') {
+    showStatus('WebGL 已恢复，回忆空间已重建');
+  }
+}
+
+let scene;
+let webglReady = Boolean(platformCapabilities.webgl?.supported);
+
+try {
+  if (!webglReady) throw new Error('WebGL unavailable');
+  scene = new MemoryBubbleScene({
+    canvas,
+    rendererProfile: runtimeProfile.renderer,
+    onRenderStatus: handleRenderStatus,
+    onPick: (memory) => {
+      void openMemory(memory, { source: 'bubble' });
+    },
+    onHoverChange: handleBubbleHover,
+  });
+} catch (error) {
+  console.warn(error);
+  webglReady = false;
+  scene = createFallbackScene();
+}
+
 const bgm = new AmbientBgm();
 
 function delay(durationMs) {
@@ -221,6 +269,31 @@ function showStatus(message) {
 function hideStatus() {
   window.clearTimeout(statusTimer);
   statusLine.classList.remove('is-visible');
+}
+
+function applyRuntimeProfile() {
+  document.body.dataset.platform = runtimeProfile.platform;
+  document.body.classList.toggle('touch-runtime', runtimeProfile.touch);
+  document.body.classList.toggle('constrained-runtime', runtimeProfile.constrained);
+  document.body.classList.toggle('webgl-unavailable', !webglReady);
+  app.dataset.platform = runtimeProfile.platform;
+
+  const issueMessages = getPlatformIssueMessages({
+    ...platformCapabilities,
+    webgl: {
+      ...platformCapabilities.webgl,
+      supported: webglReady,
+    },
+  });
+
+  if (issueMessages.length === 0) {
+    capabilityNote.hidden = true;
+    capabilityNote.textContent = '';
+    return;
+  }
+
+  capabilityNote.hidden = false;
+  capabilityNote.textContent = issueMessages.join('；');
 }
 
 function setControlDisabled(button, disabled, reason) {
@@ -379,19 +452,34 @@ async function handleFiles(fileList) {
     return;
   }
 
-  const { records, unsupported } = createMediaRecordsFromFiles(fileList);
+  const validation = validateMediaFiles(fileList, runtimeProfile.media);
+  const { records, unsupported } = createMediaRecordsFromFiles(validation.acceptedFiles);
+  const rejectedFiles = [
+    ...validation.rejectedFiles,
+    ...unsupported.map((file) => ({
+      file,
+      code: 'preview-unavailable',
+      reason: '当前浏览器无法创建本地预览',
+    })),
+  ];
+
   if (records.length === 0) {
-    showStatus('未找到可预览的照片或视频');
+    showStatus(summarizeMediaValidation({ acceptedCount: 0, rejectedFiles }) || '未找到可预览的照片或视频');
     return;
   }
 
-  const seed = Array.from(fileList)
+  const seed = Array.from(validation.acceptedFiles)
     .map((file) => `${file.name}:${file.size}:${file.lastModified}`)
     .join('|');
   await replaceMemories(records, `files:${hashString(seed)}`);
 
-  if (unsupported.length > 0) {
-    showStatus(`${records.length} 段回忆已加入，已忽略 ${unsupported.length} 个文件`);
+  if (rejectedFiles.length > 0) {
+    showStatus(
+      summarizeMediaValidation({
+        acceptedCount: records.length,
+        rejectedFiles,
+      }),
+    );
   }
 }
 
@@ -521,6 +609,8 @@ function renderFocusedMemory(memory) {
     mediaElement.controls = true;
     mediaElement.autoplay = true;
     mediaElement.playsInline = true;
+    mediaElement.setAttribute('playsinline', '');
+    mediaElement.setAttribute('webkit-playsinline', '');
     mediaElement.preload = 'metadata';
     mediaElement.muted = false;
     mediaElement.addEventListener('loadedmetadata', () => {
@@ -1542,6 +1632,10 @@ document.addEventListener('visibilitychange', () => {
   if (!isVisible) pauseFocusedMedia();
 });
 
+window.addEventListener('beforeinstallprompt', () => {
+  showStatus('浏览器已准备好添加到主屏幕');
+});
+
 window.addEventListener('beforeunload', () => {
   disposeMediaRecords(memories);
   backgroundObjectUrls.forEach((url) => URL.revokeObjectURL(url));
@@ -1552,6 +1646,15 @@ window.addEventListener('beforeunload', () => {
 
 systemReducedMotion.addEventListener('change', syncReducedMotion);
 
+if (import.meta.env.PROD) {
+  void registerAppShellServiceWorker({
+    onUpdate: () => {
+      showStatus('应用外壳已更新，下次打开会更快');
+    },
+  }).catch(() => {});
+}
+
+applyRuntimeProfile();
 updateControls();
 updateAudioButtons();
 setAmbientVolume(ambientVolumeInput.value);

@@ -48,7 +48,16 @@ body,
 #app {
   width: 100%;
   height: 100%;
+  min-height: 100%;
   margin: 0;
+}
+
+@supports (height: 100dvh) {
+  html,
+  body,
+  #app {
+    height: 100dvh;
+  }
 }
 
 body {
@@ -65,6 +74,7 @@ video {
 
 button {
   -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
 }
 
 button:focus-visible,
@@ -87,6 +97,13 @@ input:focus-visible {
   display: block;
   outline: none;
   touch-action: none;
+}
+
+body.webgl-unavailable #memory-canvas {
+  background:
+    radial-gradient(circle at 28% 24%, rgba(141, 240, 186, 0.16), transparent 30%),
+    radial-gradient(circle at 72% 72%, rgba(255, 189, 120, 0.14), transparent 34%),
+    linear-gradient(145deg, #07100c 0%, #030504 58%, #11140b 100%);
 }
 
 .ambient-film {
@@ -152,7 +169,7 @@ input:focus-visible {
 .brand-mark {
   width: 30px;
   height: 30px;
-  background: url("/icon-192.png?v=3") center / contain no-repeat;
+  background: url("/icon-192.png?v=4") center / contain no-repeat;
   filter:
     drop-shadow(0 0 12px rgba(255, 189, 120, 0.3))
     drop-shadow(0 0 18px rgba(141, 240, 186, 0.18));
@@ -383,6 +400,14 @@ input:focus-visible {
   align-items: center;
   justify-content: center;
   gap: 6px;
+}
+
+.capability-note {
+  max-width: 460px;
+  margin: 12px auto 0;
+  color: #ffcf94;
+  font-size: 12px;
+  line-height: 1.45;
 }
 
 .loading-overlay {
@@ -752,6 +777,14 @@ progress::-moz-progress-bar {
   text-align: center;
 }
 
+.tool-button span,
+.switch-button span,
+.mobile-action span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .background-modal {
   position: fixed;
   z-index: var(--z-dialog);
@@ -1049,7 +1082,7 @@ body.memory-focused .status-line {
   }
 
   .topbar {
-    top: 10px;
+    top: max(10px, env(safe-area-inset-top));
     left: 10px;
     right: 10px;
   }
@@ -1082,7 +1115,7 @@ body.memory-focused .status-line {
     width: min(430px, calc(100vw - 20px));
     min-height: 58px;
     display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(62px, 1fr));
     gap: 5px;
     padding: 6px;
     border: 1px solid var(--line);
@@ -1133,6 +1166,8 @@ body.memory-focused .status-line {
 
   .settings-sheet {
     max-height: min(620px, calc(100vh - 110px));
+    padding-bottom: max(14px, env(safe-area-inset-bottom));
+    overscroll-behavior: contain;
   }
 
   .settings-row {
@@ -1156,7 +1191,10 @@ body.memory-focused .status-line {
   }
 
   .focus-view {
-    padding: 12px;
+    padding:
+      max(12px, env(safe-area-inset-top))
+      12px
+      max(12px, env(safe-area-inset-bottom));
     gap: 10px;
   }
 
@@ -1172,6 +1210,7 @@ body.memory-focused .status-line {
   .media-frame {
     max-width: 96vw;
     max-height: 68vh;
+    max-height: min(68vh, calc(100dvh - 166px));
   }
 
   .focus-bottom {
@@ -1225,6 +1264,60 @@ body.memory-focused .status-line {
 
   .status-line {
     bottom: max(80px, calc(env(safe-area-inset-bottom) + 80px));
+  }
+}
+
+@media (max-width: 900px) and (max-height: 560px) {
+  .brand-chip {
+    min-height: 42px;
+  }
+
+  .empty-state {
+    align-items: center;
+    padding: 62px 14px 72px;
+  }
+
+  .empty-copy {
+    padding: 14px 16px;
+  }
+
+  .empty-copy h1 {
+    font-size: 28px;
+  }
+
+  .empty-description {
+    margin-bottom: 12px;
+  }
+
+  .settings-panel {
+    top: max(58px, env(safe-area-inset-top));
+    bottom: max(68px, calc(env(safe-area-inset-bottom) + 68px));
+  }
+
+  .settings-sheet {
+    max-height: calc(100dvh - 126px);
+  }
+
+  .focus-view {
+    gap: 8px;
+  }
+
+  .focus-top {
+    min-height: 42px;
+  }
+
+  .focus-heading h2 {
+    font-size: 18px;
+  }
+
+  .focused-media,
+  .media-frame {
+    max-height: 72vh;
+    max-height: calc(100dvh - 116px);
+  }
+
+  .focus-bottom {
+    min-height: 36px;
   }
 }
 

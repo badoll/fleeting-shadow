@@ -18,7 +18,7 @@ import {
   isViewModeName,
 } from './bubbleMotionConfig.js';
 
-const MAX_PREVIEW_VIDEOS = 3;
+const DEFAULT_MAX_PREVIEW_VIDEOS = 3;
 const FOCUS_DURATION = 780;
 const EXIT_DURATION = 560;
 const REDUCED_MOTION_DURATION = 120;
@@ -50,10 +50,13 @@ function lerp(from, to, progress) {
 }
 
 export class MemoryBubbleScene {
-  constructor({ canvas, onPick, onHoverChange }) {
+  constructor({ canvas, onPick, onHoverChange, onRenderStatus, rendererProfile = {} }) {
     this.canvas = canvas;
     this.onPick = onPick;
     this.onHoverChange = onHoverChange;
+    this.onRenderStatus = onRenderStatus;
+    this.pixelRatioLimit = rendererProfile.pixelRatioLimit ?? 1.75;
+    this.maxPreviewVideos = rendererProfile.maxPreviewVideos ?? DEFAULT_MAX_PREVIEW_VIDEOS;
     this.mouseX = 0;
     this.mouseY = 0;
     this.windowHalfX = window.innerWidth / 2;
@@ -82,6 +85,7 @@ export class MemoryBubbleScene {
     this.viewDirty = false;
     this.layoutMode = MEMORY_CLOUD_LAYOUT;
     this.layoutSeed = 'memory-bubbles';
+    this.currentMemories = [];
     this.layoutMetrics = null;
     this.layoutResizeTimer = 0;
     this.motionPresetName = DEFAULT_MOTION_PRESET;
@@ -135,11 +139,11 @@ export class MemoryBubbleScene {
 
     this.renderer = new THREE.WebGLRenderer({
       canvas,
-      antialias: true,
+      antialias: rendererProfile.antialias ?? true,
       alpha: false,
-      powerPreference: 'high-performance',
+      powerPreference: rendererProfile.powerPreference ?? 'high-performance',
     });
-    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.75));
+    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, this.pixelRatioLimit));
     this.renderer.setAnimationLoop((time) => this.animate(time));
 
     this.effect = new ParallaxBarrierEffect(this.renderer);
@@ -224,12 +228,30 @@ export class MemoryBubbleScene {
     };
 
     this.handleResize = () => this.resize();
+    this.handleContextLost = (event) => {
+      event.preventDefault();
+      this.pageVisible = false;
+      this.memorySpheres.forEach((sphere) => {
+        sphere.userData.video?.pause();
+      });
+      this.onRenderStatus?.({ status: 'lost' });
+    };
+    this.handleContextRestored = () => {
+      this.pageVisible = document.visibilityState === 'visible';
+      this.resize();
+      if (this.currentMemories.length > 0) {
+        this.setMemories(this.currentMemories, this.layoutSeed);
+      }
+      this.onRenderStatus?.({ status: 'restored' });
+    };
 
     document.addEventListener('pointermove', this.handlePointerMove);
     this.canvas.addEventListener('pointerdown', this.handlePointerDown);
     this.canvas.addEventListener('pointerup', this.handlePointerUp);
     this.canvas.addEventListener('pointercancel', this.handlePointerCancel);
     this.canvas.addEventListener('pointerleave', this.handlePointerLeave);
+    this.canvas.addEventListener('webglcontextlost', this.handleContextLost, false);
+    this.canvas.addEventListener('webglcontextrestored', this.handleContextRestored, false);
     window.addEventListener('blur', this.handlePointerLeave);
     window.addEventListener('resize', this.handleResize);
   }
@@ -407,7 +429,7 @@ export class MemoryBubbleScene {
 
     this.camera.aspect = width / Math.max(height, 1);
     this.camera.updateProjectionMatrix();
-    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.75));
+    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, this.pixelRatioLimit));
     this.renderer.setSize(width, height, false);
     this.effect.setSize(width, height);
     this.updateFlatBackgroundTransform();
@@ -415,6 +437,7 @@ export class MemoryBubbleScene {
   }
 
   setMemories(memories, seed = 'memory-bubbles') {
+    this.currentMemories = Array.from(memories ?? []);
     this.clearBubbles();
     this.layoutSeed = seed;
     this.focusedId = null;
@@ -530,6 +553,8 @@ export class MemoryBubbleScene {
       video.muted = true;
       video.loop = true;
       video.playsInline = true;
+      video.setAttribute('playsinline', '');
+      video.setAttribute('webkit-playsinline', '');
       video.preload = 'metadata';
 
       const texture = new THREE.VideoTexture(video);
@@ -848,7 +873,7 @@ export class MemoryBubbleScene {
         this.pageVisible &&
         !this.focusedId &&
         !this.reducedMotion &&
-        playing < MAX_PREVIEW_VIDEOS;
+        playing < this.maxPreviewVideos;
 
       if (shouldPlay) {
         playing += 1;
@@ -1601,6 +1626,8 @@ export class MemoryBubbleScene {
     this.canvas.removeEventListener('pointerup', this.handlePointerUp);
     this.canvas.removeEventListener('pointercancel', this.handlePointerCancel);
     this.canvas.removeEventListener('pointerleave', this.handlePointerLeave);
+    this.canvas.removeEventListener('webglcontextlost', this.handleContextLost, false);
+    this.canvas.removeEventListener('webglcontextrestored', this.handleContextRestored, false);
     window.removeEventListener('blur', this.handlePointerLeave);
     window.removeEventListener('resize', this.handleResize);
     this.debugCanvas?.remove();
