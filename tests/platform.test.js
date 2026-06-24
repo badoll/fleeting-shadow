@@ -52,7 +52,7 @@ test('detects iOS Safari as a constrained touch runtime', () => {
   assert.equal(capabilities.isTouch, true);
   assert.equal(isConstrainedDevice(capabilities), true);
   assert.equal(profile.renderer.maxPreviewVideos, 1);
-  assert.equal(profile.media.maxFiles, 48);
+  assert.equal(profile.media.maxFiles, 50);
 });
 
 test('detects Android Chrome separately from mobile WebView', () => {

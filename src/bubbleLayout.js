@@ -1,5 +1,9 @@
 import * as THREE from 'three';
 import { hashString, seededRandom } from './domain.js';
+import {
+  VISUAL_COMPOSITION,
+  getCompositionSettings,
+} from './sceneConfig.js';
 
 export const BUBBLE_GEOMETRY_RADIUS = 0.1;
 export const MEMORY_CLOUD_LAYOUT = 'memoryCloud';
@@ -36,6 +40,7 @@ function stableMemoryKey(memory, index) {
 }
 
 function getDepthCounts(total, isMobile) {
+  const settings = getCompositionSettings({ isMobile });
   if (total <= 0) return { near: 0, mid: 0, far: 0 };
   if (total === 1) return { near: 0, mid: 1, far: 0 };
   if (total === 2) return { near: 1, mid: 0, far: 1 };
@@ -43,7 +48,7 @@ function getDepthCounts(total, isMobile) {
 
   const nearShare = isMobile ? 0.12 : 0.18;
   const farShare = isMobile ? 0.3 : 0.27;
-  const near = Math.max(1, Math.round(total * nearShare));
+  const near = Math.min(settings.maxForegroundMemoryCount, Math.max(1, Math.round(total * nearShare)));
   const far = Math.max(1, Math.round(total * farShare));
   return {
     near,
@@ -52,10 +57,13 @@ function getDepthCounts(total, isMobile) {
   };
 }
 
-function getSizeCounts(total) {
+function getSizeCounts(total, isMobile) {
+  const settings = getCompositionSettings({ isMobile });
   if (total <= 0) return { small: 0, normal: 0, emphasis: 0 };
 
-  const emphasis = total >= 8 ? Math.max(1, Math.round(total * 0.1)) : 0;
+  const emphasis = total >= 8
+    ? Math.min(settings.maxLargeMemoryCount, Math.max(1, Math.round(total * 0.1)))
+    : 0;
   const small = total >= 4 ? Math.max(1, Math.round(total * 0.2)) : Math.max(0, total - 1);
   return {
     emphasis,
@@ -67,7 +75,7 @@ function getSizeCounts(total) {
 function assignBuckets(memories, seed, isMobile) {
   const total = memories.length;
   const depthCounts = getDepthCounts(total, isMobile);
-  const sizeCounts = getSizeCounts(total);
+  const sizeCounts = getSizeCounts(total, isMobile);
 
   const depthOrder = memories
     .map((memory, index) => ({
@@ -233,6 +241,16 @@ function getRegion(screen, viewport) {
   return screen.x < width * 0.5 ? 'leftBottom' : 'rightBottom';
 }
 
+function getQuietZoneAmount(screen) {
+  const quietZone = VISUAL_COMPOSITION.centerQuietZone;
+  const x = screen.ndcX / quietZone.radiusX;
+  const y = screen.ndcY / quietZone.radiusY;
+  const ellipseDistance = x * x + y * y;
+
+  if (ellipseDistance >= 1) return 0;
+  return 1 - ellipseDistance;
+}
+
 function circleRectOverlap(screen, radius, rect) {
   const closestX = clamp(screen.x, rect.left, rect.right);
   const closestY = clamp(screen.y, rect.top, rect.bottom);
@@ -257,13 +275,13 @@ function screenDiameterRange(bucket, { viewport, total, depthBand, isMobile }) {
   const bandScale = depthBand === 'near' ? 0.86 : depthBand === 'far' ? 0.9 : 1;
   const mobileScale = isMobile ? 0.86 : 1;
   const shortSide = viewport.shortSide;
-  const maxDiameter = shortSide * (isMobile ? 0.145 : 0.18);
+  const maxDiameter = shortSide * (isMobile ? 0.135 : 0.15);
   const minDiameter = isMobile ? 38 : 54;
 
   const ranges = {
-    small: [shortSide * 0.055, shortSide * 0.074],
-    normal: [shortSide * 0.074, shortSide * 0.108],
-    emphasis: [shortSide * 0.118, shortSide * 0.155],
+    small: [shortSide * 0.055, shortSide * 0.07],
+    normal: [shortSide * 0.073, shortSide * 0.102],
+    emphasis: [shortSide * 0.112, shortSide * 0.142],
   };
   const range = ranges[bucket] ?? ranges.normal;
 
@@ -350,14 +368,17 @@ function makeCandidate(profile, context) {
 }
 
 function scoreCandidate(candidate, profile, context) {
-  const { placed, viewport, regionCounts, sideCounts, total } = context;
+  const { placed, viewport, regionCounts, sideCounts, quietCounts, total } = context;
   const screen = candidate.screen;
   const safe = viewport.safeRect;
   const radius = screen.radius;
   const shortSide = viewport.shortSide;
+  const settings = getCompositionSettings({ isMobile: viewport.isMobile });
+  const quietZoneAmount = getQuietZoneAmount(screen);
   let minEdgeGap = shortSide * 0.28;
   let overlapPenalty = 0;
   let densityPenalty = 0;
+  let largeAlignmentPenalty = 0;
 
   for (const existing of placed) {
     const distance = Math.hypot(screen.x - existing.screen.x, screen.y - existing.screen.y);
@@ -379,6 +400,11 @@ function scoreCandidate(candidate, profile, context) {
       existing.screen.radius > shortSide * 0.055 &&
       distance < (radius + existing.screen.radius) * 1.2;
     if (largePair) densityPenalty += 220;
+
+    if (profile.emphasis && existing.sizeBucket === 'emphasis') {
+      if (Math.abs(screen.y - existing.screen.y) < shortSide * 0.1) largeAlignmentPenalty += 180;
+      if (distance < shortSide * 0.34) largeAlignmentPenalty += 240;
+    }
 
     if (distance < shortSide * 0.22) {
       densityPenalty += (1 - distance / (shortSide * 0.22)) * 70;
@@ -421,6 +447,20 @@ function scoreCandidate(candidate, profile, context) {
     candidate.region === 'center' && projectedRegionShare > REGION_TARGETS.center * 1.22
       ? (projectedRegionShare - REGION_TARGETS.center * 1.22) * 600
       : 0;
+  const projectedQuietCount = quietCounts.total + (quietZoneAmount > 0 ? 1 : 0);
+  const projectedQuietLargeCount = quietCounts.large + (quietZoneAmount > 0 && profile.emphasis ? 1 : 0);
+  const quietCrowdingPenalty =
+    quietZoneAmount > 0
+      ? quietZoneAmount * (
+        360 +
+        Math.max(0, projectedQuietCount - VISUAL_COMPOSITION.centerQuietZone.maxMemoryCount) * 420 +
+        Math.max(0, projectedQuietLargeCount - VISUAL_COMPOSITION.centerQuietZone.maxLargeMemoryCount) * 780
+      )
+      : 0;
+  const foregroundOverflowPenalty =
+    profile.depthBand === 'near' && placed.filter((item) => item.depthBand === 'near').length >= settings.maxForegroundMemoryCount
+      ? 900
+      : 0;
 
   return (
     minEdgeGap * 2.8 +
@@ -433,6 +473,9 @@ function scoreCandidate(candidate, profile, context) {
     uiPenalty -
     exactCenterPenalty -
     centerCrowdingPenalty +
+    -quietCrowdingPenalty -
+    largeAlignmentPenalty -
+    foregroundOverflowPenalty +
     profile.random() * 0.01
   );
 }
@@ -509,14 +552,19 @@ function countRegions(placed, viewport) {
     center: 0,
   };
   const sides = { left: 0, right: 0 };
+  const quiet = { total: 0, large: 0 };
 
   placed.forEach((item) => {
     counts[item.region] += 1;
     if (item.screen.x < viewport.width * 0.5) sides.left += 1;
     else sides.right += 1;
+    if (getQuietZoneAmount(item.screen) > 0) {
+      quiet.total += 1;
+      if (item.sizeBucket === 'emphasis') quiet.large += 1;
+    }
   });
 
-  return { counts, sides };
+  return { counts, sides, quiet };
 }
 
 export function summarizeScreenLayout(layoutItems, viewport) {
@@ -528,11 +576,18 @@ export function summarizeScreenLayout(layoutItems, viewport) {
     center: 0,
   };
   const depthCounts = { near: 0, mid: 0, far: 0 };
+  const sizeCounts = { small: 0, normal: 0, emphasis: 0 };
+  const quietZoneCounts = { total: 0, large: 0 };
   let overlapCount = 0;
 
   layoutItems.forEach((item, index) => {
     quadrantCounts[item.region] += 1;
     depthCounts[item.depthBand] += 1;
+    sizeCounts[item.sizeBucket] += 1;
+    if (getQuietZoneAmount(item.screen) > 0) {
+      quietZoneCounts.total += 1;
+      if (item.sizeBucket === 'emphasis') quietZoneCounts.large += 1;
+    }
 
     for (let otherIndex = index + 1; otherIndex < layoutItems.length; otherIndex += 1) {
       const other = layoutItems[otherIndex];
@@ -549,6 +604,8 @@ export function summarizeScreenLayout(layoutItems, viewport) {
     total: layoutItems.length,
     quadrantCounts,
     depthCounts,
+    sizeCounts,
+    quietZoneCounts,
     overlapCount,
     viewport: {
       width: viewport.width,
@@ -593,6 +650,7 @@ export function createMemoryCloudLayout({
     placed,
     regionCounts: { leftTop: 0, rightTop: 0, leftBottom: 0, rightBottom: 0, center: 0 },
     sideCounts: { left: 0, right: 0 },
+    quietCounts: { total: 0, large: 0 },
     total: memories.length,
     tempWorld: new THREE.Vector3(),
   };
@@ -637,6 +695,7 @@ export function createMemoryCloudLayout({
     const regions = countRegions(placed, safeViewport);
     context.regionCounts = regions.counts;
     context.sideCounts = regions.sides;
+    context.quietCounts = regions.quiet;
   });
 
   const layoutItems = memories.map((memory, index) => byKey.get(stableMemoryKey(memory, index))).filter(Boolean);

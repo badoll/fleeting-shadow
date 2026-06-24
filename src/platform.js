@@ -126,9 +126,10 @@ export function getRuntimeProfile(capabilities = {}) {
       maxPreviewVideos: reducedMotion ? 0 : constrained ? 1 : mobile ? 2 : 3,
       pixelRatioLimit: reducedMotion ? 1.1 : constrained ? 1.25 : mobile ? 1.5 : 1.75,
       powerPreference: constrained ? 'default' : 'high-performance',
+      qualityPreset: constrained ? 'low' : mobile ? 'medium' : 'high',
     },
     media: {
-      maxFiles: constrained ? 48 : 96,
+      maxFiles: constrained ? 50 : 96,
       maxFileBytes: (constrained ? 320 : 500) * 1024 * 1024,
       maxTotalBytes: (constrained ? 900 : 1400) * 1024 * 1024,
     },

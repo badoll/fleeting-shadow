@@ -12,6 +12,9 @@ const backgroundFixturePath = path.join(scratchDir, 'test-background.png');
 const cubeFixturePath = path.join(scratchDir, 'test-cube-face-256.png');
 const imageFixturePath = path.join(scratchDir, 'test-memory.svg');
 const videoFixturePath = path.join(scratchDir, 'test-memory.mp4');
+const manyImageFixturePaths = Array.from({ length: 50 }, (_, index) =>
+  path.join(scratchDir, `test-memory-${String(index + 1).padStart(2, '0')}.svg`),
+);
 const cubeFaceKeys = ['px', 'nx', 'py', 'ny', 'pz', 'nz'];
 
 mkdirSync(screenshotDir, { recursive: true });
@@ -24,6 +27,19 @@ writeFileSync(
     <text x="92" y="742" font-family="Georgia, serif" font-size="72" font-weight="700" fill="#fff5e8">Test memory</text>
   </svg>`,
 );
+manyImageFixturePaths.forEach((fixturePath, index) => {
+  const hue = (index * 37) % 360;
+  const accent = index % 3 === 0 ? '#a8ffd0' : index % 3 === 1 ? '#ffbd78' : '#9fd8ff';
+  writeFileSync(
+    fixturePath,
+    `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="820" viewBox="0 0 1200 820">
+      <rect width="1200" height="820" fill="hsl(${hue} 32% 13%)"/>
+      <circle cx="${180 + (index % 7) * 126}" cy="${170 + (index % 5) * 96}" r="${92 + (index % 4) * 18}" fill="${accent}"/>
+      <rect x="${420 + (index % 4) * 48}" y="${180 + (index % 6) * 42}" width="420" height="260" rx="24" fill="hsl(${(hue + 70) % 360} 72% 64%)"/>
+      <text x="92" y="742" font-family="Georgia, serif" font-size="72" font-weight="700" fill="#fff5e8">Memory ${index + 1}</text>
+    </svg>`,
+  );
+});
 
 if (!existsSync(backgroundFixturePath)) {
   const result = spawnSync(
@@ -109,7 +125,16 @@ async function clickVisible(page, selector) {
 }
 
 async function hoverAnyBubble(page, viewport) {
+  const bubblePositions = await page.evaluate(() => {
+    const bubbles = globalThis.__memoryBubbleScene?.getMotionSnapshot?.().bubbles ?? [];
+    return bubbles
+      .filter((bubble) => bubble.visible && bubble.poolState !== 'exiting' && bubble.visibleAlpha > 0.7)
+      .sort((a, b) => b.radius - a.radius)
+      .slice(0, 8)
+      .map((bubble) => [bubble.x, bubble.y]);
+  });
   const positions = [
+    ...bubblePositions,
     [viewport.width * 0.5, viewport.height * 0.48],
     [viewport.width * 0.38, viewport.height * 0.42],
     [viewport.width * 0.62, viewport.height * 0.42],
@@ -165,6 +190,55 @@ async function assertNoHorizontalOverflow(page, label) {
   );
 }
 
+async function closeSettingsIfOpen(page) {
+  const isOpen = await page.locator('#settings-panel').evaluate((node) => !node.hidden);
+  if (!isOpen) return;
+  await page.click('#close-settings');
+  await page.waitForFunction(() => document.querySelector('#settings-panel')?.hidden === true);
+}
+
+async function setBarrierMode(page, enabled) {
+  await openSettings(page);
+  const pressed = await page.locator('#barrier-button').getAttribute('aria-pressed');
+  if ((pressed === 'true') !== enabled) {
+    await page.click('#barrier-button');
+    await page.waitForFunction(
+      (value) => document.querySelector('#barrier-button')?.getAttribute('aria-pressed') === String(value),
+      enabled,
+    );
+  }
+  await closeSettingsIfOpen(page);
+  await page.waitForTimeout(700);
+}
+
+async function observeAmbientMotion(page, label, durationMs = 30000) {
+  const before = await page.evaluate(() => globalThis.__memoryBubbleScene?.getMotionSnapshot?.());
+  assert.ok(before, `${label} should expose scene motion snapshot`);
+  await page.waitForTimeout(durationMs);
+  const after = await page.evaluate(() => globalThis.__memoryBubbleScene?.getMotionSnapshot?.());
+  assert.ok(after?.ambient?.visibleCount > 0, `${label} should keep ambient bubbles visible`);
+
+  const beforeByIndex = new Map((before.ambient?.samples ?? []).map((sample) => [sample.index, sample]));
+  const comparable = (after.ambient.samples ?? []).filter((sample) => beforeByIndex.has(sample.index));
+  const moved = comparable.filter((sample) => {
+    const previous = beforeByIndex.get(sample.index);
+    return Math.hypot(sample.x - previous.x, sample.y - previous.y) > 8;
+  });
+
+  const minimumComparable = Math.min(20, Math.max(10, Math.floor((after.ambient.targetCount ?? 0) * 0.7)));
+  assert.ok(comparable.length >= minimumComparable, `${label} should expose enough ambient samples`);
+  assert.ok(moved.length >= comparable.length * 0.55, `${label} ambient bubbles should visibly move`);
+
+  return {
+    label,
+    renderMode: after.renderMode,
+    ambientVisible: after.ambient.visibleCount,
+    ambientTarget: after.ambient.targetCount,
+    averageFps: Math.round((after.averageFps || 0) * 10) / 10,
+    averageFrameMs: Math.round((after.averageFrameMs || 0) * 10) / 10,
+  };
+}
+
 async function openSettings(page) {
   await clickVisible(page, '[data-action="settings"]');
   await page.waitForSelector('#settings-panel:not([hidden])');
@@ -172,6 +246,7 @@ async function openSettings(page) {
 
 async function runViewport(browser, name, viewport) {
   const errors = [];
+  const performanceSummaries = [];
   const page = await browser.newPage({
     viewport,
     deviceScaleFactor: 1,
@@ -203,6 +278,37 @@ async function runViewport(browser, name, viewport) {
     const hovered = await hoverAnyBubble(page, viewport);
     assert.ok(hovered, 'desktop hover should reveal the bubble hint');
   }
+
+  await page.setInputFiles('#file-input', manyImageFixturePaths);
+  await page.waitForFunction(() =>
+    document.querySelector('#memory-count')?.textContent?.startsWith('50 '),
+  );
+  await page.waitForTimeout(1300);
+  await assertCanvasNonBlank(page, `${name} 50-memory browsing`);
+  await page.screenshot({
+    path: path.join(screenshotDir, `${name}-50-space.png`),
+    fullPage: true,
+  });
+  await page.screenshot({
+    path: path.join(screenshotDir, `${name}-standard.png`),
+    fullPage: true,
+  });
+
+  if (name === 'desktop') {
+    performanceSummaries.push(await observeAmbientMotion(page, `${name} standard`, 30000));
+  }
+
+  await setBarrierMode(page, true);
+  await page.waitForFunction(() =>
+    globalThis.__memoryBubbleScene?.getMotionSnapshot?.().renderMode === 'parallax-barrier',
+  );
+  await assertCanvasNonBlank(page, `${name} barrier`);
+  await page.screenshot({
+    path: path.join(screenshotDir, `${name}-barrier.png`),
+    fullPage: true,
+  });
+  performanceSummaries.push(await observeAmbientMotion(page, `${name} barrier`, name === 'desktop' ? 8000 : 2500));
+  await setBarrierMode(page, false);
 
   await page.setInputFiles('#file-input', [imageFixturePath, videoFixturePath]);
   await page.waitForFunction(() =>
@@ -276,7 +382,6 @@ async function runViewport(browser, name, viewport) {
 
   await page.locator('[data-memory-open]').nth(1).evaluate((button) => button.click());
   await page.waitForSelector('#focus-view:not([hidden]) video.focused-media');
-  await page.click('#focus-view [data-audio-toggle]');
   await page.waitForFunction(() =>
     Array.from(document.querySelectorAll('[data-audio-toggle]')).every(
       (button) => button.getAttribute('aria-pressed') === 'true',
@@ -286,6 +391,12 @@ async function runViewport(browser, name, viewport) {
   await page.waitForFunction(() =>
     Array.from(document.querySelectorAll('[data-audio-toggle]')).every(
       (button) => button.getAttribute('aria-pressed') === 'false',
+    ),
+  );
+  await page.click('#focus-view [data-audio-toggle]');
+  await page.waitForFunction(() =>
+    Array.from(document.querySelectorAll('[data-audio-toggle]')).every(
+      (button) => button.getAttribute('aria-pressed') === 'true',
     ),
   );
   await page.keyboard.press('Escape');
@@ -299,6 +410,9 @@ async function runViewport(browser, name, viewport) {
   await page.waitForFunction(() => document.querySelector('#reset-button')?.disabled === true);
 
   assert.deepEqual(errors, []);
+  if (performanceSummaries.length > 0) {
+    console.log(JSON.stringify({ viewport: name, performanceSummaries }));
+  }
   await page.close();
 }
 

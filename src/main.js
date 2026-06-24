@@ -86,6 +86,7 @@ const mobileAddButtons = document.querySelectorAll('[data-mobile-add]');
 const randomControls = document.querySelectorAll('[data-random-control]');
 const resetButton = document.querySelector('#reset-button');
 const parallaxButton = document.querySelector('#parallax-button');
+const barrierButton = document.querySelector('#barrier-button');
 const reduceMotionButton = document.querySelector('#reduce-motion-button');
 const viewModeInputs = document.querySelectorAll('input[name="view-mode"]');
 const motionPresetInputs = document.querySelectorAll('input[name="motion-preset"]');
@@ -122,6 +123,7 @@ let memories = [];
 let focusedMemory = null;
 let interactionState = InteractionState.EMPTY;
 let parallaxEnabled = true;
+let barrierEnabled = false;
 let userReducedMotion = false;
 let viewMode = DEFAULT_VIEW_MODE;
 let motionPreset = DEFAULT_MOTION_PRESET;
@@ -193,6 +195,7 @@ function createFallbackScene() {
     focusBubble: () => Promise.resolve(true),
     clearFocus: () => Promise.resolve(true),
     setParallaxMode() {},
+    setBarrierMode: () => false,
     setMotionPreset: () => true,
     setViewMode: () => true,
     setBubbleScale() {},
@@ -239,6 +242,12 @@ try {
 }
 
 const bgm = new AmbientBgm();
+const DEFAULT_AMBIENT_AUDIO_ENABLED = true;
+const AUDIO_UNLOCK_EVENTS = ['pointerdown', 'keydown', 'touchstart'];
+const AUDIO_UNLOCK_OPTIONS = { capture: true, passive: true };
+let desiredAudioEnabled = DEFAULT_AMBIENT_AUDIO_ENABLED;
+let defaultAudioUnlockAttached = false;
+let defaultAudioUnlockInFlight = false;
 
 function delay(durationMs) {
   return new Promise((resolve) => {
@@ -353,27 +362,78 @@ function updateLoadingProgress({ completed = 0, total = 1, current, status = 'pr
 }
 
 function updateAudioButtons() {
-  const isEnabled = bgm.isEnabled;
-  const label = isEnabled ? '关闭环境音乐' : '开启环境音乐';
+  const label = desiredAudioEnabled ? '关闭环境音乐' : '开启环境音乐';
 
   audioButtons.forEach((button) => {
-    button.classList.toggle('is-active', isEnabled);
-    button.setAttribute('aria-pressed', String(isEnabled));
+    button.classList.toggle('is-active', desiredAudioEnabled);
+    button.setAttribute('aria-pressed', String(desiredAudioEnabled));
     button.setAttribute('aria-label', label);
     button.title = label;
     const text = button.querySelector('span');
-    if (text) text.textContent = isEnabled ? '开启' : '关闭';
+    if (text) text.textContent = desiredAudioEnabled ? '开启' : '关闭';
   });
 }
 
-async function toggleAudio() {
+function setDefaultAudioUnlockListeners(enabled) {
+  if (defaultAudioUnlockAttached === enabled) return;
+  defaultAudioUnlockAttached = enabled;
+  const method = enabled ? 'addEventListener' : 'removeEventListener';
+  AUDIO_UNLOCK_EVENTS.forEach((eventName) => {
+    document[method](eventName, handleDefaultAudioUnlock, AUDIO_UNLOCK_OPTIONS);
+  });
+}
+
+async function requestAmbientAudio({ announce = false, deferOnBlocked = false } = {}) {
+  desiredAudioEnabled = true;
+
   try {
-    const isEnabled = await bgm.toggle();
+    await bgm.unmute();
+    defaultAudioUnlockInFlight = false;
+    setDefaultAudioUnlockListeners(false);
     updateAudioButtons();
-    showStatus(isEnabled ? '环境音乐已轻轻响起' : '环境音乐已关闭');
+    if (announce) showStatus('环境音乐已轻轻响起');
+    return true;
   } catch {
-    showStatus('环境音乐需要你手动允许播放');
+    defaultAudioUnlockInFlight = Boolean(deferOnBlocked);
+    setDefaultAudioUnlockListeners(defaultAudioUnlockInFlight);
+    updateAudioButtons();
+    if (announce) showStatus('环境音乐会在浏览器允许后播放');
+    return false;
   }
+}
+
+function disableAmbientAudio({ announce = false } = {}) {
+  desiredAudioEnabled = false;
+  defaultAudioUnlockInFlight = false;
+  setDefaultAudioUnlockListeners(false);
+  bgm.mute();
+  updateAudioButtons();
+  if (announce) showStatus('环境音乐已关闭');
+}
+
+function handleDefaultAudioUnlock(event) {
+  if (!desiredAudioEnabled || !defaultAudioUnlockInFlight || bgm.isEnabled) return;
+  if (event.target?.closest?.('[data-audio-toggle]')) return;
+  void requestAmbientAudio({ deferOnBlocked: true });
+}
+
+async function toggleAudio() {
+  if (desiredAudioEnabled) {
+    if (!bgm.isEnabled) {
+      await requestAmbientAudio({ announce: true, deferOnBlocked: true });
+      return;
+    }
+
+    disableAmbientAudio({ announce: true });
+    return;
+  }
+
+  await requestAmbientAudio({ announce: true, deferOnBlocked: true });
+}
+
+function enableDefaultAmbientAudio() {
+  if (!DEFAULT_AMBIENT_AUDIO_ENABLED) return;
+  void requestAmbientAudio({ deferOnBlocked: true });
 }
 
 function setAmbientVolume(value, { announce = false } = {}) {
@@ -484,7 +544,7 @@ async function handleFiles(fileList) {
 }
 
 async function loadSamples() {
-  const samples = createSampleMemories(18);
+  const samples = createSampleMemories(50);
   await replaceMemories(samples, 'sample-memory-set');
 }
 
@@ -548,7 +608,13 @@ async function openMemory(memory, { triggerElement = document.activeElement } = 
   bgm.setDucked(false);
 
   const focusFinished = await scene.focusBubble(memory.id);
-  if (openRequestId !== activeOpenToken || !focusFinished) return;
+  if (openRequestId !== activeOpenToken) return;
+  if (!focusFinished) {
+    focusedMemory = null;
+    setInteractionState(memories.length > 0 ? InteractionState.BROWSING : InteractionState.EMPTY);
+    showStatus('这段回忆暂时还没准备好，请再试一次');
+    return;
+  }
 
   hideStatus();
   renderFocusedMemory(memory);
@@ -702,6 +768,16 @@ function toggleParallax() {
   parallaxButton.classList.toggle('is-active', parallaxEnabled);
   markViewDirty();
   showStatus(parallaxEnabled ? '空间视角已开启' : '空间视角已关闭');
+}
+
+function toggleBarrierEffect() {
+  barrierEnabled = !barrierEnabled;
+  barrierEnabled = scene.setBarrierMode(barrierEnabled);
+  barrierButton.setAttribute('aria-pressed', String(barrierEnabled));
+  barrierButton.textContent = barrierEnabled ? '开启' : '关闭';
+  barrierButton.classList.toggle('is-active', barrierEnabled);
+  markViewDirty();
+  showStatus(barrierEnabled ? '栅栏视差实验模式已开启' : '栅栏视差实验模式已关闭');
 }
 
 function setMotionPreset(value, { announce = true, markDirty = true } = {}) {
@@ -1498,6 +1574,7 @@ document.addEventListener('click', (event) => {
   if (action === 'random') void openRandomMemory(actionButton);
   if (action === 'reset') resetView();
   if (action === 'parallax') toggleParallax();
+  if (action === 'barrier') toggleBarrierEffect();
   if (action === 'reduce-motion') toggleReducedMotion();
   if (action === 'audio') void toggleAudio();
 });
@@ -1637,6 +1714,7 @@ window.addEventListener('beforeinstallprompt', () => {
 });
 
 window.addEventListener('beforeunload', () => {
+  setDefaultAudioUnlockListeners(false);
   disposeMediaRecords(memories);
   backgroundObjectUrls.forEach((url) => URL.revokeObjectURL(url));
   clearPendingPreviewUrls();
@@ -1663,5 +1741,9 @@ setViewMode(viewMode, { announce: false, markDirty: false });
 setMotionPreset(motionPreset, { announce: false, markDirty: false });
 parallaxButton.setAttribute('aria-pressed', 'true');
 parallaxButton.textContent = '开启';
+enableDefaultAmbientAudio();
 parallaxButton.classList.add('is-active');
+barrierButton.setAttribute('aria-pressed', 'false');
+barrierButton.textContent = '关闭';
+barrierButton.classList.remove('is-active');
 syncReducedMotion();

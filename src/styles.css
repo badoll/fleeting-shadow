@@ -112,16 +112,29 @@ body.webgl-unavailable #memory-canvas {
   inset: 0;
   pointer-events: none;
   background:
-    linear-gradient(180deg, rgba(2, 4, 3, 0.12), rgba(2, 4, 3, 0.34)),
+    radial-gradient(ellipse at center, rgba(2, 4, 3, 0.02) 0%, rgba(2, 4, 3, 0.1) 46%, rgba(2, 4, 3, 0.34) 100%),
+    linear-gradient(180deg, rgba(2, 4, 3, 0.18), rgba(2, 4, 3, 0.38)),
     repeating-linear-gradient(
       90deg,
-      rgba(255, 245, 232, 0.018) 0,
-      rgba(255, 245, 232, 0.018) 1px,
+      rgba(255, 245, 232, 0.008) 0,
+      rgba(255, 245, 232, 0.008) 1px,
       transparent 1px,
       transparent 5px
     );
-  opacity: 0.72;
-  mix-blend-mode: screen;
+  opacity: 0.58;
+  mix-blend-mode: multiply;
+  transition:
+    opacity 520ms var(--ease),
+    background 520ms var(--ease);
+}
+
+body[data-memory-state="focusing"] .ambient-film,
+body[data-memory-state="viewing"] .ambient-film,
+body[data-memory-state="exiting"] .ambient-film {
+  opacity: 0.78;
+  background:
+    radial-gradient(ellipse at center, rgba(2, 4, 3, 0.18) 0%, rgba(2, 4, 3, 0.34) 52%, rgba(2, 4, 3, 0.62) 100%),
+    linear-gradient(180deg, rgba(2, 4, 3, 0.38), rgba(2, 4, 3, 0.7));
 }
 
 .topbar {
