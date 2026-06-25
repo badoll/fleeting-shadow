@@ -1,0 +1,675 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 56;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		000000000000000000000201 /* AppRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000101 /* AppRootView.swift */; };
+		000000000000000000000202 /* ParallaxBarrierIOSApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000102 /* ParallaxBarrierIOSApp.swift */; };
+		000000000000000000000203 /* AppLifecycleController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000103 /* AppLifecycleController.swift */; };
+		000000000000000000000204 /* ExperienceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000104 /* ExperienceView.swift */; };
+		000000000000000000000205 /* ControlOverlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000105 /* ControlOverlay.swift */; };
+		000000000000000000000206 /* CalibrationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000106 /* CalibrationView.swift */; };
+		000000000000000000000207 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000107 /* SettingsView.swift */; };
+		000000000000000000000208 /* DebugHUDView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000108 /* DebugHUDView.swift */; };
+		000000000000000000000209 /* MetalView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000109 /* MetalView.swift */; };
+		000000000000000000000210 /* ExperienceViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000110 /* ExperienceViewModel.swift */; };
+		000000000000000000000211 /* MotionController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000111 /* MotionController.swift */; };
+		000000000000000000000212 /* CameraInputState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000112 /* CameraInputState.swift */; };
+		000000000000000000000213 /* AppSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000113 /* AppSettings.swift */; };
+		000000000000000000000214 /* SettingsStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000114 /* SettingsStore.swift */; };
+		000000000000000000000215 /* SettingsValidation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000115 /* SettingsValidation.swift */; };
+		000000000000000000000216 /* Renderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000116 /* Renderer.swift */; };
+		000000000000000000000217 /* RendererError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000117 /* RendererError.swift */; };
+		000000000000000000000218 /* RenderTargets.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000118 /* RenderTargets.swift */; };
+		000000000000000000000219 /* PipelineLibrary.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000119 /* PipelineLibrary.swift */; };
+		000000000000000000000220 /* TextureFactory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000120 /* TextureFactory.swift */; };
+		000000000000000000000221 /* CubemapProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000121 /* CubemapProvider.swift */; };
+		000000000000000000000222 /* SphereMesh.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000122 /* SphereMesh.swift */; };
+		000000000000000000000223 /* SceneSimulation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000123 /* SceneSimulation.swift */; };
+		000000000000000000000224 /* StereoCameraRig.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000124 /* StereoCameraRig.swift */; };
+		000000000000000000000225 /* FrameResources.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000125 /* FrameResources.swift */; };
+		000000000000000000000226 /* RenderStatistics.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000126 /* RenderStatistics.swift */; };
+		000000000000000000000227 /* Matrix4x4.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000127 /* Matrix4x4.swift */; };
+		000000000000000000000228 /* CameraMath.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000128 /* CameraMath.swift */; };
+		000000000000000000000229 /* SeededRandomNumberGenerator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000129 /* SeededRandomNumberGenerator.swift */; };
+		000000000000000000000230 /* InterlaceSelector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000130 /* InterlaceSelector.swift */; };
+		000000000000000000000231 /* SceneShaders.metal in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000132 /* SceneShaders.metal */; };
+		000000000000000000000232 /* SkyboxShaders.metal in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000133 /* SkyboxShaders.metal */; };
+		000000000000000000000233 /* CompositeShaders.metal in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000134 /* CompositeShaders.metal */; };
+		000000000000000000000250 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000136 /* Assets.xcassets */; };
+		000000000000000000000251 /* Cubemap in Resources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000139 /* Cubemap */; };
+		000000000000000000000260 /* StereoCameraRigTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000150 /* StereoCameraRigTests.swift */; };
+		000000000000000000000261 /* InterlaceSelectorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000151 /* InterlaceSelectorTests.swift */; };
+		000000000000000000000262 /* SettingsStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000152 /* SettingsStoreTests.swift */; };
+		000000000000000000000263 /* SeededRandomTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000153 /* SeededRandomTests.swift */; };
+		000000000000000000000264 /* CameraMathTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000154 /* CameraMathTests.swift */; };
+		000000000000000000000265 /* ExperienceViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000155 /* ExperienceViewModelTests.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		000000000000000000000015 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 000000000000000000000001 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 000000000000000000000004;
+			remoteInfo = ParallaxBarrierIOS;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		000000000000000000000006 /* ParallaxBarrierIOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ParallaxBarrierIOS.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		000000000000000000000007 /* ParallaxBarrierIOSTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ParallaxBarrierIOSTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		000000000000000000000101 /* AppRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppRootView.swift; sourceTree = "<group>"; };
+		000000000000000000000102 /* ParallaxBarrierIOSApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ParallaxBarrierIOSApp.swift; sourceTree = "<group>"; };
+		000000000000000000000103 /* AppLifecycleController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppLifecycleController.swift; sourceTree = "<group>"; };
+		000000000000000000000104 /* ExperienceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExperienceView.swift; sourceTree = "<group>"; };
+		000000000000000000000105 /* ControlOverlay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ControlOverlay.swift; sourceTree = "<group>"; };
+		000000000000000000000106 /* CalibrationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalibrationView.swift; sourceTree = "<group>"; };
+		000000000000000000000107 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		000000000000000000000108 /* DebugHUDView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebugHUDView.swift; sourceTree = "<group>"; };
+		000000000000000000000109 /* MetalView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetalView.swift; sourceTree = "<group>"; };
+		000000000000000000000110 /* ExperienceViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExperienceViewModel.swift; sourceTree = "<group>"; };
+		000000000000000000000111 /* MotionController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MotionController.swift; sourceTree = "<group>"; };
+		000000000000000000000112 /* CameraInputState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraInputState.swift; sourceTree = "<group>"; };
+		000000000000000000000113 /* AppSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppSettings.swift; sourceTree = "<group>"; };
+		000000000000000000000114 /* SettingsStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsStore.swift; sourceTree = "<group>"; };
+		000000000000000000000115 /* SettingsValidation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsValidation.swift; sourceTree = "<group>"; };
+		000000000000000000000116 /* Renderer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Renderer.swift; sourceTree = "<group>"; };
+		000000000000000000000117 /* RendererError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RendererError.swift; sourceTree = "<group>"; };
+		000000000000000000000118 /* RenderTargets.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RenderTargets.swift; sourceTree = "<group>"; };
+		000000000000000000000119 /* PipelineLibrary.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PipelineLibrary.swift; sourceTree = "<group>"; };
+		000000000000000000000120 /* TextureFactory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextureFactory.swift; sourceTree = "<group>"; };
+		000000000000000000000121 /* CubemapProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CubemapProvider.swift; sourceTree = "<group>"; };
+		000000000000000000000122 /* SphereMesh.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SphereMesh.swift; sourceTree = "<group>"; };
+		000000000000000000000123 /* SceneSimulation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneSimulation.swift; sourceTree = "<group>"; };
+		000000000000000000000124 /* StereoCameraRig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StereoCameraRig.swift; sourceTree = "<group>"; };
+		000000000000000000000125 /* FrameResources.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FrameResources.swift; sourceTree = "<group>"; };
+		000000000000000000000126 /* RenderStatistics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RenderStatistics.swift; sourceTree = "<group>"; };
+		000000000000000000000127 /* Matrix4x4.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Matrix4x4.swift; sourceTree = "<group>"; };
+		000000000000000000000128 /* CameraMath.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraMath.swift; sourceTree = "<group>"; };
+		000000000000000000000129 /* SeededRandomNumberGenerator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SeededRandomNumberGenerator.swift; sourceTree = "<group>"; };
+		000000000000000000000130 /* InterlaceSelector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InterlaceSelector.swift; sourceTree = "<group>"; };
+		000000000000000000000131 /* ShaderTypes.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ShaderTypes.h; sourceTree = "<group>"; };
+		000000000000000000000132 /* SceneShaders.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = SceneShaders.metal; sourceTree = "<group>"; };
+		000000000000000000000133 /* SkyboxShaders.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = SkyboxShaders.metal; sourceTree = "<group>"; };
+		000000000000000000000134 /* CompositeShaders.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = CompositeShaders.metal; sourceTree = "<group>"; };
+		000000000000000000000135 /* CalibrationShaders.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = CalibrationShaders.metal; sourceTree = "<group>"; };
+		000000000000000000000136 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		000000000000000000000137 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		000000000000000000000138 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
+		000000000000000000000139 /* Cubemap */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Cubemap; sourceTree = "<group>"; };
+		000000000000000000000150 /* StereoCameraRigTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StereoCameraRigTests.swift; sourceTree = "<group>"; };
+		000000000000000000000151 /* InterlaceSelectorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InterlaceSelectorTests.swift; sourceTree = "<group>"; };
+		000000000000000000000152 /* SettingsStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsStoreTests.swift; sourceTree = "<group>"; };
+		000000000000000000000153 /* SeededRandomTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SeededRandomTests.swift; sourceTree = "<group>"; };
+		000000000000000000000154 /* CameraMathTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraMathTests.swift; sourceTree = "<group>"; };
+		000000000000000000000155 /* ExperienceViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExperienceViewModelTests.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		000000000000000000000009 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		000000000000000000000012 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		000000000000000000000002 = {
+			isa = PBXGroup;
+			children = (
+				000000000000000000000030 /* ParallaxBarrierIOS */,
+				000000000000000000000040 /* ParallaxBarrierIOSTests */,
+				000000000000000000000138 /* README.md */,
+				000000000000000000000003 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		000000000000000000000003 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				000000000000000000000006 /* ParallaxBarrierIOS.app */,
+				000000000000000000000007 /* ParallaxBarrierIOSTests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		000000000000000000000030 /* ParallaxBarrierIOS */ = {
+			isa = PBXGroup;
+			children = (
+				000000000000000000000137 /* Info.plist */,
+				000000000000000000000031 /* App */,
+				000000000000000000000032 /* UI */,
+				000000000000000000000033 /* ViewModels */,
+				000000000000000000000034 /* Input */,
+				000000000000000000000035 /* Settings */,
+				000000000000000000000036 /* Rendering */,
+				000000000000000000000037 /* Math */,
+				000000000000000000000038 /* Shaders */,
+				000000000000000000000039 /* Resources */,
+			);
+			path = ParallaxBarrierIOS;
+			sourceTree = "<group>";
+		};
+		000000000000000000000031 /* App */ = {
+			isa = PBXGroup;
+			children = (
+				000000000000000000000102 /* ParallaxBarrierIOSApp.swift */,
+				000000000000000000000101 /* AppRootView.swift */,
+				000000000000000000000103 /* AppLifecycleController.swift */,
+			);
+			path = App;
+			sourceTree = "<group>";
+		};
+		000000000000000000000032 /* UI */ = {
+			isa = PBXGroup;
+			children = (
+				000000000000000000000104 /* ExperienceView.swift */,
+				000000000000000000000105 /* ControlOverlay.swift */,
+				000000000000000000000106 /* CalibrationView.swift */,
+				000000000000000000000107 /* SettingsView.swift */,
+				000000000000000000000108 /* DebugHUDView.swift */,
+				000000000000000000000109 /* MetalView.swift */,
+			);
+			path = UI;
+			sourceTree = "<group>";
+		};
+		000000000000000000000033 /* ViewModels */ = {
+			isa = PBXGroup;
+			children = (
+				000000000000000000000110 /* ExperienceViewModel.swift */,
+			);
+			path = ViewModels;
+			sourceTree = "<group>";
+		};
+		000000000000000000000034 /* Input */ = {
+			isa = PBXGroup;
+			children = (
+				000000000000000000000111 /* MotionController.swift */,
+				000000000000000000000112 /* CameraInputState.swift */,
+			);
+			path = Input;
+			sourceTree = "<group>";
+		};
+		000000000000000000000035 /* Settings */ = {
+			isa = PBXGroup;
+			children = (
+				000000000000000000000113 /* AppSettings.swift */,
+				000000000000000000000114 /* SettingsStore.swift */,
+				000000000000000000000115 /* SettingsValidation.swift */,
+			);
+			path = Settings;
+			sourceTree = "<group>";
+		};
+		000000000000000000000036 /* Rendering */ = {
+			isa = PBXGroup;
+			children = (
+				000000000000000000000116 /* Renderer.swift */,
+				000000000000000000000117 /* RendererError.swift */,
+				000000000000000000000118 /* RenderTargets.swift */,
+				000000000000000000000119 /* PipelineLibrary.swift */,
+				000000000000000000000120 /* TextureFactory.swift */,
+				000000000000000000000121 /* CubemapProvider.swift */,
+				000000000000000000000122 /* SphereMesh.swift */,
+				000000000000000000000123 /* SceneSimulation.swift */,
+				000000000000000000000124 /* StereoCameraRig.swift */,
+				000000000000000000000125 /* FrameResources.swift */,
+				000000000000000000000126 /* RenderStatistics.swift */,
+			);
+			path = Rendering;
+			sourceTree = "<group>";
+		};
+		000000000000000000000037 /* Math */ = {
+			isa = PBXGroup;
+			children = (
+				000000000000000000000127 /* Matrix4x4.swift */,
+				000000000000000000000128 /* CameraMath.swift */,
+				000000000000000000000129 /* SeededRandomNumberGenerator.swift */,
+				000000000000000000000130 /* InterlaceSelector.swift */,
+			);
+			path = Math;
+			sourceTree = "<group>";
+		};
+		000000000000000000000038 /* Shaders */ = {
+			isa = PBXGroup;
+			children = (
+				000000000000000000000131 /* ShaderTypes.h */,
+				000000000000000000000132 /* SceneShaders.metal */,
+				000000000000000000000133 /* SkyboxShaders.metal */,
+				000000000000000000000134 /* CompositeShaders.metal */,
+				000000000000000000000135 /* CalibrationShaders.metal */,
+			);
+			path = Shaders;
+			sourceTree = "<group>";
+		};
+		000000000000000000000039 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				000000000000000000000136 /* Assets.xcassets */,
+				000000000000000000000139 /* Cubemap */,
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
+		000000000000000000000040 /* ParallaxBarrierIOSTests */ = {
+			isa = PBXGroup;
+			children = (
+				000000000000000000000150 /* StereoCameraRigTests.swift */,
+				000000000000000000000151 /* InterlaceSelectorTests.swift */,
+				000000000000000000000152 /* SettingsStoreTests.swift */,
+				000000000000000000000153 /* SeededRandomTests.swift */,
+				000000000000000000000154 /* CameraMathTests.swift */,
+				000000000000000000000155 /* ExperienceViewModelTests.swift */,
+			);
+			path = ParallaxBarrierIOSTests;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		000000000000000000000004 /* ParallaxBarrierIOS */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 000000000000000000000017 /* Build configuration list for PBXNativeTarget "ParallaxBarrierIOS" */;
+			buildPhases = (
+				000000000000000000000008 /* Sources */,
+				000000000000000000000009 /* Frameworks */,
+				000000000000000000000010 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = ParallaxBarrierIOS;
+			productName = ParallaxBarrierIOS;
+			productReference = 000000000000000000000006 /* ParallaxBarrierIOS.app */;
+			productType = "com.apple.product-type.application";
+		};
+		000000000000000000000005 /* ParallaxBarrierIOSTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 000000000000000000000018 /* Build configuration list for PBXNativeTarget "ParallaxBarrierIOSTests" */;
+			buildPhases = (
+				000000000000000000000011 /* Sources */,
+				000000000000000000000012 /* Frameworks */,
+				000000000000000000000013 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				000000000000000000000014 /* PBXTargetDependency */,
+			);
+			name = ParallaxBarrierIOSTests;
+			productName = ParallaxBarrierIOSTests;
+			productReference = 000000000000000000000007 /* ParallaxBarrierIOSTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		000000000000000000000001 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1600;
+				LastUpgradeCheck = 2650;
+				TargetAttributes = {
+					000000000000000000000004 = {
+						CreatedOnToolsVersion = 16.0;
+					};
+					000000000000000000000005 = {
+						CreatedOnToolsVersion = 16.0;
+						TestTargetID = 000000000000000000000004;
+					};
+				};
+			};
+			buildConfigurationList = 000000000000000000000016 /* Build configuration list for PBXProject "ParallaxBarrierIOS" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = 000000000000000000000002;
+			productRefGroup = 000000000000000000000003 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				000000000000000000000004 /* ParallaxBarrierIOS */,
+				000000000000000000000005 /* ParallaxBarrierIOSTests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		000000000000000000000010 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				000000000000000000000250 /* Assets.xcassets in Resources */,
+				000000000000000000000251 /* Cubemap in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		000000000000000000000013 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		000000000000000000000008 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				000000000000000000000202 /* ParallaxBarrierIOSApp.swift in Sources */,
+				000000000000000000000201 /* AppRootView.swift in Sources */,
+				000000000000000000000203 /* AppLifecycleController.swift in Sources */,
+				000000000000000000000204 /* ExperienceView.swift in Sources */,
+				000000000000000000000205 /* ControlOverlay.swift in Sources */,
+				000000000000000000000206 /* CalibrationView.swift in Sources */,
+				000000000000000000000207 /* SettingsView.swift in Sources */,
+				000000000000000000000208 /* DebugHUDView.swift in Sources */,
+				000000000000000000000209 /* MetalView.swift in Sources */,
+				000000000000000000000210 /* ExperienceViewModel.swift in Sources */,
+				000000000000000000000211 /* MotionController.swift in Sources */,
+				000000000000000000000212 /* CameraInputState.swift in Sources */,
+				000000000000000000000213 /* AppSettings.swift in Sources */,
+				000000000000000000000214 /* SettingsStore.swift in Sources */,
+				000000000000000000000215 /* SettingsValidation.swift in Sources */,
+				000000000000000000000216 /* Renderer.swift in Sources */,
+				000000000000000000000217 /* RendererError.swift in Sources */,
+				000000000000000000000218 /* RenderTargets.swift in Sources */,
+				000000000000000000000219 /* PipelineLibrary.swift in Sources */,
+				000000000000000000000220 /* TextureFactory.swift in Sources */,
+				000000000000000000000221 /* CubemapProvider.swift in Sources */,
+				000000000000000000000222 /* SphereMesh.swift in Sources */,
+				000000000000000000000223 /* SceneSimulation.swift in Sources */,
+				000000000000000000000224 /* StereoCameraRig.swift in Sources */,
+				000000000000000000000225 /* FrameResources.swift in Sources */,
+				000000000000000000000226 /* RenderStatistics.swift in Sources */,
+				000000000000000000000227 /* Matrix4x4.swift in Sources */,
+				000000000000000000000228 /* CameraMath.swift in Sources */,
+				000000000000000000000229 /* SeededRandomNumberGenerator.swift in Sources */,
+				000000000000000000000230 /* InterlaceSelector.swift in Sources */,
+				000000000000000000000231 /* SceneShaders.metal in Sources */,
+				000000000000000000000232 /* SkyboxShaders.metal in Sources */,
+				000000000000000000000233 /* CompositeShaders.metal in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		000000000000000000000011 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				000000000000000000000260 /* StereoCameraRigTests.swift in Sources */,
+				000000000000000000000261 /* InterlaceSelectorTests.swift in Sources */,
+				000000000000000000000262 /* SettingsStoreTests.swift in Sources */,
+				000000000000000000000263 /* SeededRandomTests.swift in Sources */,
+				000000000000000000000264 /* CameraMathTests.swift in Sources */,
+				000000000000000000000265 /* ExperienceViewModelTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		000000000000000000000014 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 000000000000000000000004 /* ParallaxBarrierIOS */;
+			targetProxy = 000000000000000000000015 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		000000000000000000000401 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		000000000000000000000402 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+			};
+			name = Release;
+		};
+		000000000000000000000403 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
+				ENABLE_TESTABILITY = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = ParallaxBarrierIOS/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.badoll.ParallaxBarrierIOS;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Debug;
+		};
+		000000000000000000000404 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = ParallaxBarrierIOS/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.badoll.ParallaxBarrierIOS;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Release;
+		};
+		000000000000000000000405 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.badoll.ParallaxBarrierIOSTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/ParallaxBarrierIOS.app/ParallaxBarrierIOS";
+			};
+			name = Debug;
+		};
+		000000000000000000000406 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.badoll.ParallaxBarrierIOSTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/ParallaxBarrierIOS.app/ParallaxBarrierIOS";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		000000000000000000000016 /* Build configuration list for PBXProject "ParallaxBarrierIOS" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				000000000000000000000401 /* Debug */,
+				000000000000000000000402 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		000000000000000000000017 /* Build configuration list for PBXNativeTarget "ParallaxBarrierIOS" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				000000000000000000000403 /* Debug */,
+				000000000000000000000404 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		000000000000000000000018 /* Build configuration list for PBXNativeTarget "ParallaxBarrierIOSTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				000000000000000000000405 /* Debug */,
+				000000000000000000000406 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 000000000000000000000001 /* Project object */;
+}
